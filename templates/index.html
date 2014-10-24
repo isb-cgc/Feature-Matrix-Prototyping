@@ -1,0 +1,139 @@
+<!--
+Copyright 2014 Google Inc. All rights reserved.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+-->
+<html>
+<head>
+  <title>Genomics Features</title>
+  <!-- Bootstrap Resources -->
+  <!-- Latest compiled and minified CSS -->
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css">
+
+  <!-- Optional theme -->
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap-theme.min.css">
+
+  <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+
+  <!-- jQuery Validation -->
+  <script src="//ajax.aspnetcdn.com/ajax/jquery.validate/1.11.1/jquery.validate.min.js" type="text/javascript"></script>
+
+  <!-- Latest compiled and minified JavaScript -->
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
+
+  <!-- Local Resources -->
+  <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
+  <link rel="stylesheet" href="/static/css/main.css">
+  <script src="static/js/custom.js" type="text/javascript"></script>
+</head>
+<body role="document">
+<script>
+
+</script>
+
+<!-- Fixed navbar -->
+<div class="navbar navbar-inverse navbar-fixed-top" role="navigation">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="#">Genomics Features</a>
+    </div>
+    <div class="navbar-collapse collapse">
+      <ul class="nav navbar-nav">
+          <li><a href="about">About</a></li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<div class="container theme-showcase" role="main">
+  <h1>Feature Lookup</h1>
+  <p>Search data by various means.</p>
+  <br/>
+  <div class="panel panel-default">
+    <div class="panel-heading">
+      <h3 class="panel-title">Lookup by Sample and Feature</h3>
+    </div>
+    <div class="panel-body">
+      <p><b>Provide the Sample and Feature to lookup its Value.</b></p>
+      <form id="lookupForm" name="lookupForm" action="{{ path }}" method="POST"
+        class="form-horizontal" role="form">
+        <div class="form-group">
+          <label for="lookupSample" class="col-sm-2 control-label">Sample:</label>
+          <div class="col-sm-10">
+            <input class="form-control" type="text" name="lookupSample" id="lookupSample"
+                   value="{{ lookupSample }}"/>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="lookupFeature" class="col-sm-2 control-label">Feature:</label>
+          <div class="col-sm-10">
+            <input class="form-control" type="text" name="lookupFeature" id="lookupFeature"
+                   value="{{ lookupFeature }}"/>
+          </div>
+        </div>
+        <div class="form-group">
+          <div class="col-sm-offset-2 col-sm-10">
+            <input class="btn btn-primary" type="submit" id="submitCreateLog"
+                   name="submitCreateLog" value="Lookup" />
+          </div>
+        </div>
+        {% if lookupValue != None %}
+        <div class="form-group">
+          <label for="lookupValue" class="col-sm-2 control-label">Value:</label>
+          <div class="col-sm-10">
+            <input class="form-control" type="text" name="lookupValue" id="lookupValue"
+                   value="{{ lookupValue }}" readonly=""/>
+          </div>
+        </div>
+        {% endif %}
+      </form>
+    </div>
+  </div>
+  <div class="panel panel-default">
+    <div class="panel-heading">
+      <h3 class="panel-title">Samples and Features</h3>
+    </div>
+    <div class="panel-body">
+      <p><b>Example items to choose from:</b></p>
+      <div class="row">
+        <div class="col-sm-4">
+          Samples:
+          <ul class="list-group">
+            {% for sample in samples %}
+            <li class="list-group-item">{{ sample }}</li>
+            {% endfor %}
+          </ul>
+        </div>
+        <div class="col-sm-8">
+          Features:
+          <ul class="list-group">
+            {% for feature in features %}
+            <li class="list-group-item">{{ feature }}</li>
+            {% endfor %}
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="pull-left">Welcome {{ username }}.</div>
+  <div class="pull-right" style="text-align: right">Version: {{ version }}</div>
+</div>
+</body>
+</html>
