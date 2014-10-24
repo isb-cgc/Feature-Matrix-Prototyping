@@ -66,9 +66,14 @@ class MainHandler(webapp2.RequestHandler):
     features = self._get_all_distinct_features()
     lookupSample = str(self.request.get("lookupSample"))
     lookupFeature = str(self.request.get("lookupFeature"))
-    lookupValue = self._get_value_by_sample_feature(lookupSample, lookupFeature)
+    lookupValue = None
+    lookupResults = None
+    if self.request.get("submitSampleFeature"):
+      lookupValue = self._get_value_by_sample_feature(lookupSample, lookupFeature)
+    if self.request.get("submitFeature"):
+      lookupResults = self._get_results_by_feature(lookupFeature)
     self._render_page(samples, features, lookupSample, lookupFeature,
-                      lookupValue)
+                      lookupValue, lookupResults)
 
   def _get_version(self):
     version = self.request.environ["CURRENT_VERSION_ID"].split(".")
@@ -79,7 +84,7 @@ class MainHandler(webapp2.RequestHandler):
     return name + " as of " + date.strftime("%Y-%m-%d %X")
 
   def _render_page(self, samples, features, lookupSample, lookupFeature,
-                   lookupValue=None):
+                   lookupValue=None, lookupResults=None):
     username = users.User().nickname()
     template = JINJA_ENVIRONMENT.get_template("index.html")
     self.response.out.write(template.render({
@@ -88,6 +93,7 @@ class MainHandler(webapp2.RequestHandler):
       "lookupSample": lookupSample,
       "lookupFeature": lookupFeature,
       "lookupValue": lookupValue,
+      "lookupResults": lookupResults,
       "path": self.request.path,
       "username": username,
       "version": self._get_version(),
@@ -118,6 +124,11 @@ class MainHandler(webapp2.RequestHandler):
     for feature in features:
       value_only = feature.value
     return value_only
+
+  def _get_results_by_feature(self, feature):
+    query = Feature.query(Feature.feature == feature).order(Feature.sample)
+    features = query.fetch(100)
+    return features
 
 # For demo purposes, map many sample pages to this handler.
 app = webapp2.WSGIApplication(
