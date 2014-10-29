@@ -12,18 +12,15 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
-
-Example Google App Engine Analytics integration.
 """
 
-import datetime
 import jinja2
 import json
 import logging
-import os
 import time
 import webapp2
 import urllib
+import util
 
 from collections import OrderedDict
 from google.appengine.api import users
@@ -31,25 +28,22 @@ from google.appengine.api import urlfetch
 from google.appengine.api.logservice import logservice
 from google.appengine.ext import ndb
 
+from model import Feature
+from model import FeatureMetadata2
+from pipeline import PipelineImportData
+
+
 JINJA_ENVIRONMENT = jinja2.Environment(
   loader=jinja2.FileSystemLoader("templates"),
   autoescape=True,
   extensions=["jinja2.ext.autoescape"])
 
-class Feature(ndb.Model):
-  sample = ndb.StringProperty()
-  feature = ndb.StringProperty()
-  value = ndb.StringProperty()
-
 class MainHandler(webapp2.RequestHandler):
   """The main page."""
 
-  # Number of log messages to display in the web page.
-  LOG_MESSAGES_NUM_TO_DISPLAY = 20
-
   def get(self):
     user = users.get_current_user()
-    #Feature.get_or_insert("foo2")
+    #FeatureMetadata.get_or_insert("foo2")
     if user:
       samples = self._get_all_distinct_samples()
       features = self._get_all_distinct_features()
@@ -72,16 +66,15 @@ class MainHandler(webapp2.RequestHandler):
       lookupValue = self._get_value_by_sample_feature(lookupSample, lookupFeature)
     if self.request.get("submitFeature"):
       lookupResults = self._get_results_by_feature(lookupFeature)
+    if self.request.get("submitImport"):
+      filename = str(self.request.get("importFilename"))
+      blob_key = util.get_blob_key_from_file(filename)
+      pipeline = PipelineImportData([blob_key], 100)
+      pipeline.start()
+      self.redirect('%s/status?root=%s' %
+                    (pipeline.base_path, pipeline.pipeline_id))
     self._render_page(samples, features, lookupSample, lookupFeature,
                       lookupValue, lookupResults)
-
-  def _get_version(self):
-    version = self.request.environ["CURRENT_VERSION_ID"].split(".")
-    name = version[0]
-    date = datetime.datetime.fromtimestamp(long(version[1]) >> 28)
-    if os.environ["SERVER_SOFTWARE"].startswith("Development"):
-      date = datetime.datetime.now()
-    return name + " as of " + date.strftime("%Y-%m-%d %X")
 
   def _render_page(self, samples, features, lookupSample, lookupFeature,
                    lookupValue=None, lookupResults=None):
@@ -96,7 +89,7 @@ class MainHandler(webapp2.RequestHandler):
       "lookupResults": lookupResults,
       "path": self.request.path,
       "username": username,
-      "version": self._get_version(),
+      "version": util.get_app_version(),
     }))
 
   def _get_all_distinct_samples(self):

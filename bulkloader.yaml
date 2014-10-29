@@ -23,7 +23,7 @@ python_preamble:
 - import: google.appengine.api.users
 
 transformers:
-- kind: Feature
+- kind: FeatureMetadata
   connector: csv
   property_map:
     - property: sample
@@ -32,3 +32,17 @@ transformers:
       external_name: feature
     - property: value
       external_name: value
+    - property: value_type
+      external_name: value_type
+    - property: feature_kind
+      external_name: feature_kind
+    - property: chromosome
+      external_name: chromosome
+    - property: start
+      external_name: start
+    - property: stop
+      external_name: stop
+    - property: strand
+      external_name: strand
+    - property: other
+      external_name: other
