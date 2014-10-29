@@ -16,6 +16,7 @@ limitations under the License.
 
 import cloudstorage as gcs
 import datetime
+import logging
 import os
 
 from google.appengine.ext import blobstore
@@ -28,12 +29,28 @@ def get_app_version():
     date = datetime.datetime.now()
   return name + " as of " + date.strftime("%Y-%m-%d %X")
 
-def get_blob_key_from_file(filename):
-  # TODO: Check filename starts with / and doesn't start with gs://
-  #stat = gcs.stat(filename)
-  #logging.warn("GCSstat: %r" % repr(stat))
-  blob_key = blobstore.create_gs_key('/gs/' + filename)
-  #logging.warn("Blobkey: %s" % str(blob_key))
-  #blob_info = blobstore.get(blob_key)
-  #logging.warn("BlobInfo: %d" % blob_info.size)
+def get_blob_key_from_gcs_file(filename):
+  filename = _prep_gcs_filename(filename)
+  blob_key = blobstore.create_gs_key('/gs' + filename)
+  logging.warn("Blobkey: %s" % str(blob_key))
+  blob_info = blobstore.get(blob_key)
+  if blob_info is not None:
+    logging.warn("BlobInfo: %d" % blob_info.size)
+  else:
+    logging.warn("BlobInfo is None!")
   return blob_key
+
+def get_size_from_gcs_file(filename):
+  filename = _prep_gcs_filename(filename)
+  stat = gcs.stat(filename)
+  logging.warn("GCSstat: %r" % repr(stat))
+  return stat.st_size
+
+def _prep_gcs_filename(filename):
+  # Strip out "gs://" and ensure it starts with "/"
+  prefix = "gs://"
+  if filename.startswith(prefix):
+    filename = filename[len(prefix):]
+  if not filename.startswith("/"):
+    filename = "/" + filename
+  return filename

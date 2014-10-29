@@ -56,13 +56,14 @@ def insert_data(item):
 class PipelineImportData(base_handler.PipelineBase):
   """A pipeline to import data"""
 
-  def run(self, blob_keys, shards):
+  def run(self, blob_keys, blob_sizes, shards):
     yield mapper_pipeline.MapperPipeline(
       "import_data_mapper",
       "pipeline.insert_data",
       "mapreduce.input_readers.BlobstoreLineInputReader",
       params={
-              "blob_keys": ",".join(blob_keys),
+              "blob_keys": blob_keys,
+              "blob_sizes": blob_sizes,
       },
       shards=shards)
 

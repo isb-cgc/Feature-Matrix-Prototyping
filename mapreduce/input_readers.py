@@ -1369,6 +1369,7 @@ class BlobstoreLineInputReader(InputReader):
 
   # Mapreduce parameters.
   BLOB_KEYS_PARAM = "blob_keys"
+  BLOB_SIZES_PARAM = "blob_sizes"
 
   # Serialization parmaeters.
   INITIAL_POSITION_PARAM = "initial_position"
@@ -1460,11 +1461,12 @@ class BlobstoreLineInputReader(InputReader):
       raise BadReaderParamsError("Too many 'blob_keys' for mapper input")
     if not blob_keys:
       raise BadReaderParamsError("No 'blob_keys' specified for mapper input")
-    for blob_key in blob_keys:
-      blob_info = blobstore.BlobInfo.get(blobstore.BlobKey(blob_key))
-      if not blob_info:
-        raise BadReaderParamsError("Could not find blobinfo for key %s" %
-                                   blob_key)
+    if cls.BLOB_SIZES_PARAM not in params:
+      for blob_key in blob_keys:
+        blob_info = blobstore.BlobInfo.get(blobstore.BlobKey(blob_key))
+        if not blob_info:
+          raise BadReaderParamsError("Could not find blobinfo for key %s" %
+                                     blob_key)
 
   @classmethod
   def split_input(cls, mapper_spec):
@@ -1479,15 +1481,18 @@ class BlobstoreLineInputReader(InputReader):
     """
     params = _get_params(mapper_spec)
     blob_keys = params[cls.BLOB_KEYS_PARAM]
+    blob_sizes = {}
+    if cls.BLOB_SIZES_PARAM in params:
+      blob_sizes = params[cls.BLOB_SIZES_PARAM]
     if isinstance(blob_keys, basestring):
       # This is a mechanism to allow multiple blob keys (which do not contain
       # commas) in a single string. It may go away.
       blob_keys = blob_keys.split(",")
 
-    blob_sizes = {}
-    for blob_key in blob_keys:
-      blob_info = blobstore.BlobInfo.get(blobstore.BlobKey(blob_key))
-      blob_sizes[blob_key] = blob_info.size
+    if not blob_sizes:
+      for blob_key in blob_keys:
+        blob_info = blobstore.BlobInfo.get(blobstore.BlobKey(blob_key))
+        blob_sizes[blob_key] = blob_info.size
 
     shard_count = min(cls._MAX_SHARD_COUNT, mapper_spec.shard_count)
     shards_per_blob = shard_count // len(blob_keys)

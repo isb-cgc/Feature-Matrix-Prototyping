@@ -68,8 +68,9 @@ class MainHandler(webapp2.RequestHandler):
       lookupResults = self._get_results_by_feature(lookupFeature)
     if self.request.get("submitImport"):
       filename = str(self.request.get("importFilename"))
-      blob_key = util.get_blob_key_from_file(filename)
-      pipeline = PipelineImportData([blob_key], 100)
+      blob_key = util.get_blob_key_from_gcs_file(filename)
+      file_size = util.get_size_from_gcs_file(filename)
+      pipeline = PipelineImportData([blob_key], {blob_key: file_size}, 100)
       pipeline.start()
       self.redirect('%s/status?root=%s' %
                     (pipeline.base_path, pipeline.pipeline_id))
