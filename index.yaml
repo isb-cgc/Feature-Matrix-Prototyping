@@ -10,7 +10,12 @@ indexes:
 # automatically uploaded to the admin console when you next deploy
 # your application using appcfg.py.
 
-- kind: Feature
+- kind: FeatureMetadata2
   properties:
   - name: feature
   - name: sample
+
+- kind: NameValue
+  properties:
+  - name: name
+  - name: value

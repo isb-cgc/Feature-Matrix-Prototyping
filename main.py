@@ -17,6 +17,7 @@ limitations under the License.
 import jinja2
 import json
 import logging
+import model
 import time
 import webapp2
 import urllib
@@ -28,8 +29,6 @@ from google.appengine.api import urlfetch
 from google.appengine.api.logservice import logservice
 from google.appengine.ext import ndb
 
-from model import Feature
-from model import FeatureMetadata2
 from pipeline import PipelineImportData
 
 
@@ -38,15 +37,15 @@ JINJA_ENVIRONMENT = jinja2.Environment(
   autoescape=True,
   extensions=["jinja2.ext.autoescape"])
 
+
 class MainHandler(webapp2.RequestHandler):
   """The main page."""
 
   def get(self):
     user = users.get_current_user()
-    #FeatureMetadata.get_or_insert("foo2")
     if user:
-      samples = self._get_all_distinct_samples()
-      features = self._get_all_distinct_features()
+      samples = model.get_all_distinct_samples()
+      features = model.get_all_distinct_features()
       self._render_page(samples, features, "sample", "feature")
     else:
       template = JINJA_ENVIRONMENT.get_template("grantaccess.html")
@@ -56,29 +55,40 @@ class MainHandler(webapp2.RequestHandler):
 
   def post(self):
     # Render the page.
-    samples = self._get_all_distinct_samples()
-    features = self._get_all_distinct_features()
+    samples = model.get_all_distinct_samples()
+    features = model.get_all_distinct_features()
     lookupSample = str(self.request.get("lookupSample"))
     lookupFeature = str(self.request.get("lookupFeature"))
     lookupValue = None
     lookupResults = None
+    alertMessage = None
+    alertLevel = None
     if self.request.get("submitSampleFeature"):
-      lookupValue = self._get_value_by_sample_feature(lookupSample, lookupFeature)
+      lookupValue = model.get_value_by_sample_feature(lookupSample, lookupFeature)
     if self.request.get("submitFeature"):
-      lookupResults = self._get_results_by_feature(lookupFeature)
+      lookupResults = model.get_results_by_feature(lookupFeature)
+    if self.request.get("submitRebuild"):
+      count = self._rebuild_name_values()
+      alertMessage = "We rebuilt %d items." % count
+      alertLevel = "alert-success"
     if self.request.get("submitImport"):
       filename = str(self.request.get("importFilename"))
-      blob_key = util.get_blob_key_from_gcs_file(filename)
-      file_size = util.get_size_from_gcs_file(filename)
-      pipeline = PipelineImportData([blob_key], {blob_key: file_size}, 100)
-      pipeline.start()
-      self.redirect('%s/status?root=%s' %
-                    (pipeline.base_path, pipeline.pipeline_id))
+      if filename == "":
+        alertMessage = "Please provide the url/path to a GCS file."
+        alertLevel = "alert-danger"
+      else:
+        blob_key = util.get_blob_key_from_gcs_file(filename)
+        file_size = util.get_size_from_gcs_file(filename)
+        pipeline = PipelineImportData([blob_key], {blob_key: file_size}, 100)
+        pipeline.start()
+        self.redirect('%s/status?root=%s' %
+                      (pipeline.base_path, pipeline.pipeline_id))
     self._render_page(samples, features, lookupSample, lookupFeature,
-                      lookupValue, lookupResults)
+                      lookupValue, lookupResults, alertMessage, alertLevel)
 
   def _render_page(self, samples, features, lookupSample, lookupFeature,
-                   lookupValue=None, lookupResults=None):
+                   lookupValue=None, lookupResults=None, alertMessage=None,
+                   alertLevel=None):
     username = users.User().nickname()
     template = JINJA_ENVIRONMENT.get_template("index.html")
     self.response.out.write(template.render({
@@ -91,47 +101,23 @@ class MainHandler(webapp2.RequestHandler):
       "path": self.request.path,
       "username": username,
       "version": util.get_app_version(),
+      "alertMessage": alertMessage,
+      "alertLevel": alertLevel,
     }))
 
-  def _get_all_distinct_samples(self):
-    query = (Feature.query(projection=["sample"], distinct=True)
-        .order(Feature.sample))
-    features = query.fetch(100)
-    samples = []
-    for feature in features:
-      samples.append(feature.sample)
-    return samples
+  def _rebuild_name_values(self):
+    count = 0
+    names = ["feature_kind", "chromosome"]
+    for name in names:
+      values = model.get_from_feature_distict(name)
+      count += len(values)
+      model.rebuild_name_value(name, values)
+      values = model.get_values_for(name)
+    return count
 
-  def _get_all_distinct_features(self):
-    query = (Feature.query(projection=["feature"], distinct=True)
-        .order(Feature.feature))
-    features = query.fetch(100)
-    features_only = []
-    for feature in features:
-      features_only.append(feature.feature)
-    return features_only
-
-  def _get_value_by_sample_feature(self, sample, feature):
-    query = Feature.query(Feature.sample == sample, Feature.feature == feature)
-    features = query.fetch(1)
-    value_only = "No value found for this sample and feature."
-    for feature in features:
-      value_only = feature.value
-    return value_only
-
-  def _get_results_by_feature(self, feature):
-    query = Feature.query(Feature.feature == feature).order(Feature.sample)
-    features = query.fetch(100)
-    return features
-
-# For demo purposes, map many sample pages to this handler.
 app = webapp2.WSGIApplication(
   [
     ("/", MainHandler),
-    ("/products", MainHandler),
-    ("/purchase", MainHandler),
-    ("/login", MainHandler),
-    ("/contact", MainHandler),
   ],
   debug=True)
 

@@ -79,6 +79,11 @@ limitations under the License.
   <h1>Feature Lookup</h1>
   <p>Search data by various means.</p>
   <br/>
+  {% if alertMessage %}
+    <div id="alertMessage" class="alert {{ alertLevel }}">
+      {{ alertMessage }}
+    </div>
+  {% endif %}
   <div class="panel panel-default">
     <div class="panel-heading">
       <h3 class="panel-title">Lookup by Sample and Feature</h3>
@@ -176,7 +181,7 @@ limitations under the License.
       <h3 class="panel-title">Admin</h3>
     </div>
     <div class="panel-body">
-      <p><b>Import data.</b></p>
+      <p>Data Management Tasks</p>
       <form id="adminForm" name="adminForm" action="{{ path }}" method="POST"
         class="form-horizontal" role="form">
         <div class="form-group">
@@ -185,7 +190,7 @@ limitations under the License.
             <div class="input-group">
               <span class="input-group-addon">gs://</span>
               <input class="form-control" type="text" name="importFilename" id="importFilename"
-                   value="zettaneerpdq-bucket1/genomics/ISB/brca_tcga_20141012_featuremetadata.csv"/>
+                   value=""/>
             </div>
           </div>
         </div>
@@ -193,6 +198,9 @@ limitations under the License.
           <div class="col-sm-offset-2 col-sm-10">
             <input class="btn btn-primary" type="submit" id="submitImport"
                    name="submitImport" value="Import" />
+            &nbsp;&nbsp;&nbsp;
+            <input class="btn btn-primary" type="submit" id="submitRebuild"
+                   name="submitRebuild" value="Rebuild" />
           </div>
         </div>
       </form>
