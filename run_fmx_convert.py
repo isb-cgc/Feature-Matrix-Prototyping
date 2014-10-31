@@ -37,15 +37,15 @@ with open(output_filename, "w") as output_file:
           writer.writerow(output_cols)
         continue
       feature = line[0]
+      tokens = feature.split(":")
+      if len(tokens) != 8:
+        print "The feature: %s could not be broken-up into 8 tokens" % feature
+        sys.exit()
       for i in range(1, columns):
         output_line = []
         output_line.append(header[i])  # sample
         output_line.append(feature)  # feature
         output_line.append(line[i])  # value
-        tokens = feature.split(":")
-        if len(tokens) != 8:
-          print "The feature: %s could not be broken-up into 8 tokens" % feature
-          sys.exit()
         output_line.extend(tokens)
         writer.writerow(output_line)
 
