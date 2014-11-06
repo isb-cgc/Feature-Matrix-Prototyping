@@ -110,8 +110,7 @@ class MainHandler(webapp2.RequestHandler):
     names = ["feature_kind", "chromosome"]
     for name in names:
       values = model.get_from_feature_distict(name)
-      count += len(values)
-      model.rebuild_name_value(name, values)
+      count += model.rebuild_name_value(name, values)
       values = model.get_values_for(name)
     return count
 

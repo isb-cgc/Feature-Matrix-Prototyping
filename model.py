@@ -52,8 +52,10 @@ def rebuild_name_value(name, values):
   # Recreate New
   namevalues = []
   for value in values:
-    namevalues.append(NameValue(name=name, value=value))
+    if value:
+      namevalues.append(NameValue(name=name, value=value))
   ndb.put_multi(namevalues)
+  return len(namevalues)
 
 def get_values_for(name):
   query = NameValue.query(NameValue.name == name).order(NameValue.value)

@@ -206,30 +206,159 @@ limitations under the License.
       </form>
     </div>
   </div>
-  <div class="panel panel-warning">
+  <div class="panel panel-info">
     <div class="panel-heading">
-      <h3 class="panel-title">Samples and Features</h3>
+      <h3 class="panel-title">Feature Information</h3>
     </div>
     <div class="panel-body">
-      <p><b>Example items to choose from:</b></p>
-      <div class="row">
-        <div class="col-sm-4">
-          Samples:
-          <ul class="list-group">
-            {% for sample in samples %}
-            <li class="list-group-item">{{ sample }}</li>
-            {% endfor %}
-          </ul>
-        </div>
-        <div class="col-sm-8">
-          Features:
-          <ul class="list-group">
-            {% for feature in features %}
-            <li class="list-group-item">{{ feature }}</li>
-            {% endfor %}
-          </ul>
-        </div>
-      </div>
+      <p>An example feature
+      <span style="font-family:monospace; font-size: 14px;"><b>N:GEXP:TP53:chr17:7565097:7590856:-:7157</b></span>
+      can be broken down as follows:</p>
+      <table class="table">
+        <thead>
+          <tr>
+            <th><a href="#feature_value_type">value_type</a></th>
+            <th><a href="#feature_feature_kind">feature_kind</a></th>
+            <th><a href="#feature_label">label</a></th>
+            <th><a href="#feature_chromosome">chromosome</a></th>
+            <th><a href="#feature_chromosome">start</a></th>
+            <th><a href="#feature_chromosome">stop</a></th>
+            <th><a href="#feature_chromosome">strand</a></th>
+            <th><a href="#feature_other">other</a></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>N</td>
+            <td>GEXP</td>
+            <td>TP53</td>
+            <td>chr17</td>
+            <td>7565097</td>
+            <td>7590856</td>
+            <td>-</td>
+            <td>7157</td>
+          </tr>
+        </tbody>
+      </table>
+     <h4 id="feature_value_type" style="color: #777">value_type</h4>
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Value:</th>
+            <th>Meaning:</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>B</td>
+            <td>the value of this feature is <b>binary</b>.</td>
+          </tr>
+          <tr>
+            <td>C</td>
+            <td>the value of this feature is <b>categorical</b>.</td>
+          </tr>
+          <tr>
+            <td>N</td>
+            <td>the value of this feature is <b>numeric</b>.</td>
+          </tr>
+        </tbody>
+      </table>
+     <h4 id="feature_feature_kind" style="color: #777">feature_kind</h4>
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Value:</th>
+            <th>Meaning:</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>CLIN</td>
+            <td><b>clinical</b>, this is information that describes the patient, eg gender or vital_status.</td>
+          </tr>
+          <tr>
+            <td>CNVR</td>
+            <td><b>copy-number variation</b>, these are copy-number segments.</td>
+          </tr>
+          <tr>
+            <td>GEXP</td>
+            <td><b>gene expression</b>, from an mRNA assay (usually mRNAseq, sometimes array-based)</td>
+          </tr>
+          <tr>
+            <td>GNAB</td>
+            <td><b>genomic aberration</b>, these are binary mutation features.</td>
+          </tr>
+          <tr>
+            <td>METH</td>
+            <td><b>DNA methylation</b>, from the HumanMethylation27/450k platform.</td>
+          </tr>
+          <tr>
+            <td>MIRN</td>
+            <td><b>microRNA expression</b>, from an miRNAseq assay.</td>
+          </tr>
+          <tr>
+            <td>RPPA</td>
+            <td><b>protein expression</b>, for an RPPA assay.</td>
+          </tr>
+          <tr>
+            <td>SAMP</td>
+            <td><b>sample</b>,  this is information that describes the sample.</td>
+          </tr>
+        </tbody>
+      </table>
+      <h4 id="feature_label" style="color: #777">label</h4>
+      <table class="table">
+        <thead>
+          <tr>
+            <th>When feature_kind is:</th>
+            <th>Meaning:</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>GEXP, MIRN, RPPA, METH,<br/> GNAB, and some CNVR</td>
+            <td>the gene symbol.</td>
+          </tr>
+          <tr>
+            <td>CLIN, SAMP</td>
+            <td>a description of what the information is (eg gender or vital_status or some type of clustering method, etc).</td>
+          </tr>
+        </tbody>
+      </table>
+      <h4 id="feature_chromosome" style="color: #777">chromosome, start, stop, strand</h4>
+      <table class="table">
+        <thead>
+          <tr>
+            <th>When feature_kind is:</th>
+            <th>Meaning:</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>GEXP, MIRN, RPPA, METH,<br/> GNAB, and some CNVR</td>
+            <td>the genomic coordinates.</td>
+          </tr>
+          <tr>
+            <td>CLIN, SAMP</td>
+            <td>N/A (blank).</td>
+          </tr>
+        </tbody>
+      </table>
+      <h4 id="feature_other" style="color: #777">other</h4>
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Value:</th>
+            <th>Meaning:</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><i>optional</i></td>
+            <td> contains additional information that might be needed, in addition to the label in the third field, to make this feature unique.</td>
+          </tr>
+        </tbody>
+      </table>
     </div>
   </div>
   <div class="pull-left">Welcome {{ username }}.</div>
