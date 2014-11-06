@@ -22,6 +22,7 @@ threadsafe: yes
 # appcfg.py upload_data
 builtins:
 - remote_api: on
+- deferred: on
 
 handlers:
 # Enable admin (you may want to disable this for production apps).

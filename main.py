@@ -18,6 +18,7 @@ import jinja2
 import json
 import logging
 import model
+import search
 import time
 import webapp2
 import urllib
@@ -67,14 +68,18 @@ class MainHandler(webapp2.RequestHandler):
       lookupValue = model.get_value_by_sample_feature(lookupSample, lookupFeature)
     if self.request.get("submitFeature"):
       lookupResults = model.get_results_by_feature(lookupFeature)
-    if self.request.get("submitRebuild"):
+    if self.request.get("submitRebuildNameValues"):
       count = self._rebuild_name_values()
-      alertMessage = "We rebuilt %d items." % count
+      alertMessage = "We rebuilt %d name/value items." % count
       alertLevel = "alert-success"
+    if self.request.get("submitRebuildSearch"):
+      filename = str(self.request.get("importFilename"))
+      alertMessage, alertLevel = self._rebuild_search(filename)
     if self.request.get("submitImport"):
       filename = str(self.request.get("importFilename"))
-      if filename == "":
-        alertMessage = "Please provide the url/path to a GCS file."
+      filename = util.validate_gsc_filename(filename)
+      if not filename:
+        alertMessage = "Please provide the url/path to a valid GCS file."
         alertLevel = "alert-danger"
       else:
         blob_key = util.get_blob_key_from_gcs_file(filename)
@@ -113,6 +118,20 @@ class MainHandler(webapp2.RequestHandler):
       count += model.rebuild_name_value(name, values)
       values = model.get_values_for(name)
     return count
+
+  def _rebuild_search(self, filename):
+    alertMessage = None
+    alertLevel = None
+    filename = util.validate_gsc_filename(filename)
+    if not filename:
+      alertMessage = "Please provide the url/path to a valid GCS file."
+      alertLevel = "alert-danger"
+    else:
+      count = search.import_gcs_file_features_into_index(filename)
+      alertMessage = ("We rebuilt the first %d search items. "
+          "Please wait while we rebuild the rest." % count)
+      alertLevel = "alert-success"
+    return (alertMessage, alertLevel)
 
 app = webapp2.WSGIApplication(
   [
