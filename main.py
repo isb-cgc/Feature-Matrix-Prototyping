@@ -18,6 +18,7 @@ import jinja2
 import json
 import logging
 import model
+import pickle
 import search
 import time
 import webapp2
@@ -45,9 +46,7 @@ class MainHandler(webapp2.RequestHandler):
   def get(self):
     user = users.get_current_user()
     if user:
-      samples = model.get_all_distinct_samples()
-      features = model.get_all_distinct_features()
-      self._render_page(samples, features, "sample", "feature")
+      self._render_page()
     else:
       template = JINJA_ENVIRONMENT.get_template("grantaccess.html")
       self.response.write(template.render({
@@ -56,18 +55,29 @@ class MainHandler(webapp2.RequestHandler):
 
   def post(self):
     # Render the page.
-    samples = model.get_all_distinct_samples()
-    features = model.get_all_distinct_features()
-    lookupSample = str(self.request.get("lookupSample"))
+    viewstate = self.request.get("viewstate")
+    if viewstate:
+      viewstate = pickle.loads(viewstate)
+    searchFeature = str(self.request.get("searchFeature"))
+    searchFeatureResults = viewstate
     lookupFeature = str(self.request.get("lookupFeature"))
-    lookupValue = None
-    lookupResults = None
+    lookupFeatureResults = None
+    lookupSample = str(self.request.get("lookupSample"))
+    lookupSampleFeatureResults = None
     alertMessage = None
     alertLevel = None
+    if self.request.get("submitSearchFeature"):
+      searchFeatureResults = search.search_features(searchFeature)
+      alertMessage = ("Found %d features that matched the search for \"%s\"."
+          % (len(searchFeatureResults), searchFeature))
+      alertLevel = "alert-success"
+    if self.request.get("submitLookupFeature"):
+      lookupFeatureResults = model.get_results_by_feature(lookupFeature)
+      if len(lookupFeatureResults) > 0:
+        lookupSample = lookupFeatureResults[0].sample
     if self.request.get("submitSampleFeature"):
-      lookupValue = model.get_value_by_sample_feature(lookupSample, lookupFeature)
-    if self.request.get("submitFeature"):
-      lookupResults = model.get_results_by_feature(lookupFeature)
+      lookupSampleFeatureResults = (
+          model.get_value_by_sample_feature(lookupSample, lookupFeature))
     if self.request.get("submitRebuildNameValues"):
       count = self._rebuild_name_values()
       alertMessage = "We rebuilt %d name/value items." % count
@@ -88,21 +98,26 @@ class MainHandler(webapp2.RequestHandler):
         pipeline.start()
         self.redirect('%s/status?root=%s' %
                       (pipeline.base_path, pipeline.pipeline_id))
-    self._render_page(samples, features, lookupSample, lookupFeature,
-                      lookupValue, lookupResults, alertMessage, alertLevel)
+    viewstate = pickle.dumps(searchFeatureResults)
+    self._render_page(viewstate, searchFeature, searchFeatureResults,
+                      lookupFeature, lookupFeatureResults,
+                      lookupSample, lookupSampleFeatureResults,
+                      alertMessage, alertLevel)
 
-  def _render_page(self, samples, features, lookupSample, lookupFeature,
-                   lookupValue=None, lookupResults=None, alertMessage=None,
-                   alertLevel=None):
+  def _render_page(self, viewstate="", searchFeature="", searchFeatureResults=None,
+                   lookupFeature="", lookupFeatureResults=None,
+                   lookupSample="", lookupSampleFeatureResults=None,
+                   alertMessage=None, alertLevel=None):
     username = users.User().nickname()
     template = JINJA_ENVIRONMENT.get_template("index.html")
     self.response.out.write(template.render({
-      "samples": samples,
-      "features": features,
-      "lookupSample": lookupSample,
+      "viewstate": viewstate,
+      "searchFeature": searchFeature,
+      "searchFeatureResults": searchFeatureResults,
       "lookupFeature": lookupFeature,
-      "lookupValue": lookupValue,
-      "lookupResults": lookupResults,
+      "lookupFeatureResults": lookupFeatureResults,
+      "lookupSample": lookupSample,
+      "lookupSampleFeatureResults": lookupSampleFeatureResults,
       "path": self.request.path,
       "username": username,
       "version": util.get_app_version(),

@@ -79,3 +79,27 @@ def import_gcs_file_features_into_index(filename, offset=0):
       import_into_index(documents)
       logging.info("Done with import of %d items." % count)
   return count
+
+def search_features(query_string):
+  features = []
+  sort1 = search.SortExpression(expression='feature',
+                                direction=search.SortExpression.ASCENDING,
+                                default_value="")
+  sort_opts = search.SortOptions(expressions=[sort1])
+
+  query_options = search.QueryOptions(
+    limit=50,
+    returned_fields=['feature'],
+    sort_options=sort_opts)
+
+  query = search.Query(query_string=query_string, options=query_options)
+  try:
+    index = search.Index(name="featureIndex")
+    search_result = index.search(query)
+    for document in search_result.results:
+      features.append(document.fields[0].value)
+  except search.Error:
+    logging.error("There was an error running the search on \"%s\"."
+                  % query_string)
+
+  return features

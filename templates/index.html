@@ -76,14 +76,107 @@ limitations under the License.
 </div>
 
 <div class="container theme-showcase" role="main">
-  <h1>Feature Lookup</h1>
-  <p>Search data by various means.</p>
+  <h1>Feature Matrix Analyzer</h1>
+  <p>Search and lookup features and view sample data based on these features.</p>
   <br/>
   {% if alertMessage %}
     <div id="alertMessage" class="alert {{ alertLevel }}">
       {{ alertMessage }}
     </div>
   {% endif %}
+  <div class="panel panel-default">
+    <div class="panel-heading">
+      <h3 class="panel-title">Feature Search</h3>
+    </div>
+    <div class="panel-body">
+      <p>Free text search over available features. Examples:
+       <b>nonsilent_somatic</b>, <b>Basal</b>, <b>cg26968812_Body_Island</b>, etc.</p>
+      <form id="searchFeatureForm" name="searchFeatureForm" action="{{ path }}" method="POST"
+        class="form-horizontal" role="form">
+        <div class="form-group">
+          <label for="searchFeature" class="col-sm-2 control-label">Find Features:</label>
+          <div class="col-sm-10">
+            <input class="form-control" type="text" name="searchFeature" id="searchFeature"
+                   value="{{ searchFeature }}"/>
+          </div>
+        </div>
+        <div class="form-group">
+          <div class="col-sm-offset-2 col-sm-10">
+            <input class="btn btn-primary" type="submit" id="submitSearchFeature"
+                   name="submitSearchFeature" value="Search" />
+          </div>
+        </div>
+        {% if searchFeatureResults != None %}
+        <div class="form-group">
+          <label for="featuresFound" class="col-sm-2 control-label">Features Found:</label>
+          <div class="col-sm-10">
+            <ul class="list-group">
+              {% for feature in searchFeatureResults %}
+              <li class="list-group-item">{{ feature }}</li>
+              {% endfor %}
+            </ul>
+          </div>
+        </div>
+        {% endif %}
+      </form>
+    </div>
+  </div>
+  <div class="panel panel-default">
+    <div class="panel-heading">
+      <h3 class="panel-title">Lookup by Feature</h3>
+    </div>
+    <div class="panel-body">
+      <p>From the features returned in the above search, show the sample data for the selected feature.</p>
+      <form id="lookupFeatureForm" name="lookupFeatureForm" action="{{ path }}" method="POST"
+        class="form-horizontal" role="form">
+        <input type="hidden" name="viewstate" value="{{ viewstate }}">
+        <input type="hidden" name="searchFeature" value="{{ searchFeature }}">
+        <div class="form-group">
+          <label for="lookupFeature" class="col-sm-2 control-label">Feature:</label>
+          <div class="col-sm-10">
+            <select name="lookupFeature" id="lookupFeature" class="form-control">
+              {% if searchFeatureResults != None %}
+              {% for feature in searchFeatureResults %}
+              <option value="{{ feature }}" {% if feature == lookupFeature %}SELECTED{% endif %}>{{ feature }}</option>
+              {% endfor %}
+              {% endif %}
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <div class="col-sm-offset-2 col-sm-10">
+            <input class="btn btn-primary" type="submit" id="submitLookupFeature"
+                   name="submitLookupFeature" value="Lookup" />
+          </div>
+        </div>
+        {% if lookupFeatureResults != None %}
+        <div class="form-group">
+          <label for="lookupValue" class="col-sm-2 control-label">Results:</label>
+          <div class="col-sm-10">
+            <div class="table-responsive">
+              <table class="table table-striped">
+                <thead>
+                  <tr>
+                    <th>Sample</th>
+                    <th>Value</th>
+                  </tr>
+                </thead>
+                <tbody>
+                {% for result in lookupFeatureResults %}
+                  <tr>
+                    <td>{{ result.sample }}</td>
+                    <td>{{ result.value }}</td>
+                  </tr>
+                {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+        {% endif %}
+      </form>
+    </div>
+  </div>
   <div class="panel panel-default">
     <div class="panel-heading">
       <h3 class="panel-title">Lookup by Sample and Feature</h3>
@@ -112,100 +205,15 @@ limitations under the License.
                    name="submitSampleFeature" value="Lookup" />
           </div>
         </div>
-        {% if lookupValue != None %}
+        {% if lookupSampleFeatureResults != None %}
         <div class="form-group">
           <label for="lookupValue" class="col-sm-2 control-label">Value:</label>
           <div class="col-sm-10">
             <input class="form-control" type="text" name="lookupValue" id="lookupValue"
-                   value="{{ lookupValue }}" readonly=""/>
+                   value="{{ lookupSampleFeatureResults }}" readonly=""/>
           </div>
         </div>
         {% endif %}
-      </form>
-    </div>
-  </div>
-  <div class="panel panel-default">
-    <div class="panel-heading">
-      <h3 class="panel-title">Lookup by Feature</h3>
-    </div>
-    <div class="panel-body">
-      <p><b>Shows all samples and values for a given feature. (Only first 100 Features shown.)</b></p>
-      <form id="lookupFeatureForm" name="lookupFeatureForm" action="{{ path }}" method="POST"
-        class="form-horizontal" role="form">
-        <div class="form-group">
-          <label for="lookupFeature" class="col-sm-2 control-label">Feature:</label>
-          <div class="col-sm-10">
-            <select name="lookupFeature" id="lookupFeature" class="form-control">
-              {% for feature in features %}
-              <option value="{{ feature }}" {% if feature == lookupFeature %}SELECTED{% endif %}>{{ feature }}</option>
-              {% endfor %}
-            </select>
-          </div>
-        </div>
-        <div class="form-group">
-          <div class="col-sm-offset-2 col-sm-10">
-            <input class="btn btn-primary" type="submit" id="submitFeature"
-                   name="submitFeature" value="Lookup" />
-          </div>
-        </div>
-        {% if lookupResults != None %}
-        <div class="form-group">
-          <label for="lookupValue" class="col-sm-2 control-label">Results:</label>
-          <div class="col-sm-10">
-            <div class="table-responsive">
-              <table class="table table-striped">
-                <thead>
-                  <tr>
-                    <th>Sample</th>
-                    <th>Value</th>
-                  </tr>
-                </thead>
-                <tbody>
-                {% for result in lookupResults %}
-                  <tr>
-                    <td>{{ result.sample }}</td>
-                    <td>{{ result.value }}</td>
-                  </tr>
-                {% endfor %}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-        {% endif %}
-      </form>
-    </div>
-  </div>
-  <div class="panel panel-danger">
-    <div class="panel-heading">
-      <h3 class="panel-title">Admin</h3>
-    </div>
-    <div class="panel-body">
-      <p>Data Management Tasks</p>
-      <form id="adminForm" name="adminForm" action="{{ path }}" method="POST"
-        class="form-horizontal" role="form">
-        <div class="form-group">
-          <label for="importFilename" class="col-sm-2 control-label">Import Filename:</label>
-          <div class="col-sm-10">
-            <div class="input-group">
-              <span class="input-group-addon">gs://</span>
-              <input class="form-control" type="text" name="importFilename" id="importFilename"
-                   value=""/>
-            </div>
-          </div>
-        </div>
-        <div class="form-group">
-          <div class="col-sm-offset-2 col-sm-10">
-            <input class="btn btn-primary" type="submit" id="submitImport"
-                   name="submitImport" value="Import Matrix" />
-            &nbsp;&nbsp;&nbsp;
-            <input class="btn btn-primary" type="submit" id="submitRebuildSearch"
-                   name="submitRebuildSearch" value="Import Search" />
-            &nbsp;&nbsp;&nbsp;
-            <input class="btn btn-primary" type="submit" id="submitRebuildNameValues"
-                   name="submitRebuildNameValues" value="Rebuild Values" />
-          </div>
-        </div>
       </form>
     </div>
   </div>
@@ -362,6 +370,39 @@ limitations under the License.
           </tr>
         </tbody>
       </table>
+    </div>
+  </div>
+  <div class="panel panel-danger">
+    <div class="panel-heading">
+      <h3 class="panel-title">Admin</h3>
+    </div>
+    <div class="panel-body">
+      <p>Data Management Tasks</p>
+      <form id="adminForm" name="adminForm" action="{{ path }}" method="POST"
+        class="form-horizontal" role="form">
+        <div class="form-group">
+          <label for="importFilename" class="col-sm-2 control-label">Import Filename:</label>
+          <div class="col-sm-10">
+            <div class="input-group">
+              <span class="input-group-addon">gs://</span>
+              <input class="form-control" type="text" name="importFilename" id="importFilename"
+                   value=""/>
+            </div>
+          </div>
+        </div>
+        <div class="form-group">
+          <div class="col-sm-offset-2 col-sm-10">
+            <input class="btn btn-primary" type="submit" id="submitImport"
+                   name="submitImport" value="Import Matrix" />
+            &nbsp;&nbsp;&nbsp;
+            <input class="btn btn-primary" type="submit" id="submitRebuildSearch"
+                   name="submitRebuildSearch" value="Import Search" />
+            &nbsp;&nbsp;&nbsp;
+            <input class="btn btn-primary" type="submit" id="submitRebuildNameValues"
+                   name="submitRebuildNameValues" value="Rebuild Values" />
+          </div>
+        </div>
+      </form>
     </div>
   </div>
   <div class="pull-left">Welcome {{ username }}.</div>
