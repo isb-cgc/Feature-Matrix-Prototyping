@@ -14,6 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+import base64
 import jinja2
 import json
 import logging
@@ -55,7 +56,7 @@ class MainHandler(webapp2.RequestHandler):
 
   def post(self):
     # Render the page.
-    viewstate = self.request.get("viewstate")
+    viewstate = base64.b64decode(self.request.get("viewstate"))
     if viewstate:
       viewstate = pickle.loads(viewstate)
     searchFeature = str(self.request.get("searchFeature"))
@@ -98,7 +99,7 @@ class MainHandler(webapp2.RequestHandler):
         pipeline.start()
         self.redirect('%s/status?root=%s' %
                       (pipeline.base_path, pipeline.pipeline_id))
-    viewstate = pickle.dumps(searchFeatureResults)
+    viewstate = base64.b64encode(pickle.dumps(searchFeatureResults))
     self._render_page(viewstate, searchFeature, searchFeatureResults,
                       lookupFeature, lookupFeatureResults,
                       lookupSample, lookupSampleFeatureResults,
