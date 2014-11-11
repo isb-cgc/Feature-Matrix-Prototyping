@@ -50,7 +50,7 @@ handlers:
 
 - url: .*
   script: main.app
-  login: required
+  login: optional
 
 env_variables:
   FOO: "bar"

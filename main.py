@@ -45,14 +45,7 @@ class MainHandler(webapp2.RequestHandler):
   """The main page."""
 
   def get(self):
-    user = users.get_current_user()
-    if user:
-      self._render_page()
-    else:
-      template = JINJA_ENVIRONMENT.get_template("grantaccess.html")
-      self.response.write(template.render({
-        "url": users.create_login_url("/")
-      }))
+    self._render_page()
 
   def post(self):
     # Render the page.
@@ -78,7 +71,7 @@ class MainHandler(webapp2.RequestHandler):
         lookupSample = lookupFeatureResults[0].sample
     if self.request.get("submitSampleFeature"):
       lookupSampleFeatureResults = (
-          model.get_value_by_sample_feature(lookupSample, lookupFeature))
+          model.get_value_by_feature_sample(lookupFeature, lookupSample))
     if self.request.get("submitRebuildNameValues"):
       count = self._rebuild_name_values()
       alertMessage = "We rebuilt %d name/value items." % count
@@ -109,7 +102,9 @@ class MainHandler(webapp2.RequestHandler):
                    lookupFeature="", lookupFeatureResults=None,
                    lookupSample="", lookupSampleFeatureResults=None,
                    alertMessage=None, alertLevel=None):
-    username = users.User().nickname()
+    username = "anonymous user"
+    if users.get_current_user():
+      username = users.User().nickname()
     template = JINJA_ENVIRONMENT.get_template("index.html")
     self.response.out.write(template.render({
       "viewstate": viewstate,
@@ -149,9 +144,34 @@ class MainHandler(webapp2.RequestHandler):
       alertLevel = "alert-success"
     return (alertMessage, alertLevel)
 
+class GetValuesHandler(webapp2.RequestHandler):
+  _MAX_ITEMS_REQUEST = 50
+
+  def get(self):
+    features = str(self.request.get("features")).split(" ")
+    samples = str(self.request.get("samples")).split(" ")
+    respone = {}
+    if len(features) > self._MAX_ITEMS_REQUEST:
+      response = {
+          "error": "You can request at most %d features." %
+              self._MAX_ITEMS_REQUEST
+      }
+    elif len(samples) > self._MAX_ITEMS_REQUEST:
+      response = {
+          "error": "You can request at most %d samples." %
+              self._MAX_ITEMS_REQUEST
+      }
+    else:
+      response = {
+          "values": model.get_values_by_features_samples(features, samples),
+      }
+    self.response.write(json.dumps(response))
+
+
 app = webapp2.WSGIApplication(
   [
     ("/", MainHandler),
+    ("/api/getvalues", GetValuesHandler),
   ],
   debug=True)
 

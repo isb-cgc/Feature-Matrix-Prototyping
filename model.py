@@ -83,14 +83,32 @@ def get_all_distinct_features():
     features_only.append(feature.feature)
   return features_only
 
-def get_value_by_sample_feature(sample, feature):
-  query = FeatureMetadata2.query(FeatureMetadata2.sample == sample,
-                                 FeatureMetadata2.feature == feature)
+def get_value_by_feature_sample(feature, sample):
+  query = FeatureMetadata2.query(FeatureMetadata2.feature == feature,
+                                 FeatureMetadata2.sample == sample)
   features = query.fetch(1)
   value_only = "No value found for this sample and feature."
   for feature in features:
     value_only = feature.value
   return value_only
+
+def get_values_by_features_samples(features, samples):
+  query = []
+  if samples == ['']:
+    query = FeatureMetadata2.query(FeatureMetadata2.feature.IN(features))
+  else:
+    query = FeatureMetadata2.query(FeatureMetadata2.feature.IN(features),
+                                   FeatureMetadata2.sample.IN(samples))
+  results = query.fetch(1000)
+  values = []
+  for result in results:
+    values.append({
+                 "feature": result.feature,
+                 "sample": result.sample,
+                 "value": result.value
+                 })
+  return values
+
 
 def get_results_by_feature(feature):
   query = (FeatureMetadata2.query(FeatureMetadata2.feature == feature)
