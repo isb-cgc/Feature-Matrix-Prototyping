@@ -45,6 +45,7 @@ class MainHandler(webapp2.RequestHandler):
   """The main page."""
 
   def get(self):
+    #model.put_sample_data()
     self._render_page()
 
   def post(self):
@@ -150,8 +151,18 @@ class GetValuesHandler(webapp2.RequestHandler):
   def get(self):
     features = str(self.request.get("features")).split(" ")
     samples = str(self.request.get("samples")).split(" ")
+    format = str(self.request.get("format"))
     respone = {}
-    if len(features) > self._MAX_ITEMS_REQUEST:
+    if features == ['']:
+      response = {
+          "error": "You must specify one or more features."
+      }
+    elif samples == [''] and len(features) > 3:
+      response = {
+          "error": "If you are requesting all samples then you can only select "
+          " up to 3 features."
+      }
+    elif len(features) > self._MAX_ITEMS_REQUEST:
       response = {
           "error": "You can request at most %d features." %
               self._MAX_ITEMS_REQUEST
@@ -162,9 +173,10 @@ class GetValuesHandler(webapp2.RequestHandler):
               self._MAX_ITEMS_REQUEST
       }
     else:
-      response = {
-          "values": model.get_values_by_features_samples(features, samples),
-      }
+      if format == "matrix":
+        response = model.get_matrix_by_features_samples(features, samples)
+      else:
+        response = model.get_values_by_features_samples(features, samples)
     self.response.write(json.dumps(response))
 
 

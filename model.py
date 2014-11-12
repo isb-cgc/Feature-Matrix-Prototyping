@@ -35,6 +35,26 @@ class NameValue(ndb.Model):
   name = ndb.StringProperty()
   value = ndb.StringProperty()
 
+def put_sample_data():
+  # http://localhost:8080/api/getvalues?features=B:GNAB:TP53:chr17:7565097:7590863:-:DNA_interface_somatic%20B:GNAB:TP53:chr17:7565097:7590863:-:bound_delta_ge_10_somatic%20B:GNAB:TP53:chr17:7565097:7590863:-:bound_delta_ge_2_somatic&samples=TCGA-07-0227-20%20TCGA-3C-AAAU-01%20TCGA-3C-AALI-01
+  FeatureMetadata2(feature="B:GNAB:TP53:chr17:7565097:7590863:-:DNA_interface_somatic",
+                   sample="TCGA-07-0227-20", value="1").put()
+  FeatureMetadata2(feature="B:GNAB:TP53:chr17:7565097:7590863:-:bound_delta_ge_10_somatic",
+                   sample="TCGA-07-0227-20", value="4").put()
+  FeatureMetadata2(feature="B:GNAB:TP53:chr17:7565097:7590863:-:bound_delta_ge_2_somatic",
+                   sample="TCGA-07-0227-20", value="7").put()
+  FeatureMetadata2(feature="B:GNAB:TP53:chr17:7565097:7590863:-:DNA_interface_somatic",
+                   sample="TCGA-3C-AAAU-01", value="2").put()
+  FeatureMetadata2(feature="B:GNAB:TP53:chr17:7565097:7590863:-:bound_delta_ge_10_somatic",
+                   sample="TCGA-3C-AAAU-01", value="5").put()
+  FeatureMetadata2(feature="B:GNAB:TP53:chr17:7565097:7590863:-:bound_delta_ge_2_somatic",
+                   sample="TCGA-3C-AAAU-01", value="8").put()
+  FeatureMetadata2(feature="B:GNAB:TP53:chr17:7565097:7590863:-:DNA_interface_somatic",
+                   sample="TCGA-3C-AALI-01", value="3").put()
+  FeatureMetadata2(feature="B:GNAB:TP53:chr17:7565097:7590863:-:bound_delta_ge_10_somatic",
+                   sample="TCGA-3C-AALI-01", value="6").put()
+  FeatureMetadata2(feature="B:GNAB:TP53:chr17:7565097:7590863:-:bound_delta_ge_2_somatic",
+                   sample="TCGA-3C-AALI-01", value="9").put()
 
 def get_from_feature_distict(name):
   query = FeatureMetadata2.query(projection=[name], distinct=True)
@@ -68,7 +88,7 @@ def get_values_for(name):
 def get_all_distinct_samples():
   query = (FeatureMetadata2.query(projection=["sample"], distinct=True)
       .order(FeatureMetadata2.sample))
-  features = query.fetch(100)
+  features = query.fetch(2000)
   samples = []
   for feature in features:
     samples.append(feature.sample)
@@ -103,11 +123,36 @@ def get_values_by_features_samples(features, samples):
   values = []
   for result in results:
     values.append({
-                 "feature": result.feature,
-                 "sample": result.sample,
-                 "value": result.value
-                 })
+        "feature": result.feature,
+        "sample": result.sample,
+        "value": result.value
+    })
   return values
+
+def get_matrix_by_features_samples(features, samples):
+  query = []
+  if samples == ['']:
+    query = FeatureMetadata2.query(FeatureMetadata2.feature.IN(features))
+    # get_all_distinct_samples is an expensive call that we probably don't
+    # need to do every time.
+    samples = get_all_distinct_samples()
+  else:
+    query = FeatureMetadata2.query(FeatureMetadata2.feature.IN(features),
+                                   FeatureMetadata2.sample.IN(samples))
+  results = query.fetch(10000)
+  rows = len(features)
+  cols = len(samples)
+  values = []
+  for _ in range(rows):
+    values.append([None] * cols)
+  for result in results:
+    values[features.index(result.feature)][samples.index(result.sample)] = result.value
+  matrix = {
+    "rows": features,
+    "columns": samples,
+    "values": values,
+  }
+  return matrix
 
 
 def get_results_by_feature(feature):
