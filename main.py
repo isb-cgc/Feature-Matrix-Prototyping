@@ -124,9 +124,9 @@ class MainHandler(webapp2.RequestHandler):
 
   def _rebuild_name_values(self):
     count = 0
-    names = ["feature_kind", "chromosome"]
+    names = ["feature_kind", "chromosome", "sample"]
     for name in names:
-      values = model.get_from_feature_distict(name)
+      values = model.get_from_feature_distinct(name)
       count += model.rebuild_name_value(name, values)
       values = model.get_values_for(name)
     return count

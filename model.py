@@ -56,9 +56,9 @@ def put_sample_data():
   FeatureMetadata2(feature="B:GNAB:TP53:chr17:7565097:7590863:-:bound_delta_ge_2_somatic",
                    sample="TCGA-3C-AALI-01", value="9").put()
 
-def get_from_feature_distict(name):
+def get_from_feature_distinct(name):
   query = FeatureMetadata2.query(projection=[name], distinct=True)
-  features = query.fetch(100)
+  features = query.fetch(2000)
   feature_kinds = []
   for feature in features:
     feature_kinds.append(getattr(feature, name))
@@ -67,7 +67,7 @@ def get_from_feature_distict(name):
 def rebuild_name_value(name, values):
   # Delete Existing
   query = NameValue.query(NameValue.name == name)
-  namevalues = query.fetch(1000, keys_only=True)
+  namevalues = query.fetch(2000, keys_only=True)
   ndb.delete_multi(namevalues)
   # Recreate New
   namevalues = []
@@ -79,7 +79,7 @@ def rebuild_name_value(name, values):
 
 def get_values_for(name):
   query = NameValue.query(NameValue.name == name).order(NameValue.value)
-  namevalues = query.fetch(1000)
+  namevalues = query.fetch(2000)
   values = []
   for namevalue in namevalues:
     values.append(namevalue.value)
@@ -133,9 +133,7 @@ def get_matrix_by_features_samples(features, samples):
   query = []
   if samples == ['']:
     query = FeatureMetadata2.query(FeatureMetadata2.feature.IN(features))
-    # get_all_distinct_samples is an expensive call that we probably don't
-    # need to do every time.
-    samples = get_all_distinct_samples()
+    samples = get_values_for("sample")
   else:
     query = FeatureMetadata2.query(FeatureMetadata2.feature.IN(features),
                                    FeatureMetadata2.sample.IN(samples))
