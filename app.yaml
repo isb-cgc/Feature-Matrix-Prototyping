@@ -13,8 +13,10 @@
 # limitations under the License.
 
 application: zettaneerpdq
-version: genomicsfeatures
+version: genomicsfeatures-mvm
 runtime: python27
+# If you enable vm then also remove/rename bulkloader.yaml as it doesn't like that file for some reason.
+#vm: true
 api_version: 1
 threadsafe: yes
 
