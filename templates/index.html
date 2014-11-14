@@ -160,6 +160,7 @@ limitations under the License.
       google.setOnLoadCallback(drawChart);
       function drawChart() {
         var data = google.visualization.arrayToDataTable([
+        ['Sample', 'Value'],
         {% for result in lookupFeatureResults %}
           {% if result.value != "NA" %}
             ['{{ result.sample }}', '{{ result.value }}'],
