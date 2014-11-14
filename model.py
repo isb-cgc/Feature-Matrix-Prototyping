@@ -37,23 +37,23 @@ class NameValue(ndb.Model):
 
 def put_sample_data():
   # http://localhost:8080/api/getvalues?features=B:GNAB:TP53:chr17:7565097:7590863:-:DNA_interface_somatic%20B:GNAB:TP53:chr17:7565097:7590863:-:bound_delta_ge_10_somatic%20B:GNAB:TP53:chr17:7565097:7590863:-:bound_delta_ge_2_somatic&samples=TCGA-07-0227-20%20TCGA-3C-AAAU-01%20TCGA-3C-AALI-01
-  FeatureMetadata2(feature="B:GNAB:TP53:chr17:7565097:7590863:-:DNA_interface_somatic",
+  FeatureMetadata2(feature="B:SAMP:I(Basal,Her2|PAM50_call):::::",
                    sample="TCGA-07-0227-20", value="1").put()
-  FeatureMetadata2(feature="B:GNAB:TP53:chr17:7565097:7590863:-:bound_delta_ge_10_somatic",
+  FeatureMetadata2(feature="B:SAMP:I(Basal,LumA|PAM50_call):::::",
                    sample="TCGA-07-0227-20", value="4").put()
-  FeatureMetadata2(feature="B:GNAB:TP53:chr17:7565097:7590863:-:bound_delta_ge_2_somatic",
+  FeatureMetadata2(feature="B:SAMP:I(Basal,Normal|PAM50_call):::::",
                    sample="TCGA-07-0227-20", value="7").put()
-  FeatureMetadata2(feature="B:GNAB:TP53:chr17:7565097:7590863:-:DNA_interface_somatic",
+  FeatureMetadata2(feature="B:SAMP:I(Basal,Her2|PAM50_call):::::",
                    sample="TCGA-3C-AAAU-01", value="2").put()
-  FeatureMetadata2(feature="B:GNAB:TP53:chr17:7565097:7590863:-:bound_delta_ge_10_somatic",
+  FeatureMetadata2(feature="B:SAMP:I(Basal,LumA|PAM50_call):::::",
                    sample="TCGA-3C-AAAU-01", value="5").put()
-  FeatureMetadata2(feature="B:GNAB:TP53:chr17:7565097:7590863:-:bound_delta_ge_2_somatic",
+  FeatureMetadata2(feature="B:SAMP:I(Basal,Normal|PAM50_call):::::",
                    sample="TCGA-3C-AAAU-01", value="8").put()
-  FeatureMetadata2(feature="B:GNAB:TP53:chr17:7565097:7590863:-:DNA_interface_somatic",
+  FeatureMetadata2(feature="B:SAMP:I(Basal,Her2|PAM50_call):::::",
                    sample="TCGA-3C-AALI-01", value="3").put()
-  FeatureMetadata2(feature="B:GNAB:TP53:chr17:7565097:7590863:-:bound_delta_ge_10_somatic",
+  FeatureMetadata2(feature="B:SAMP:I(Basal,LumA|PAM50_call):::::",
                    sample="TCGA-3C-AALI-01", value="6").put()
-  FeatureMetadata2(feature="B:GNAB:TP53:chr17:7565097:7590863:-:bound_delta_ge_2_somatic",
+  FeatureMetadata2(feature="B:SAMP:I(Basal,Normal|PAM50_call):::::",
                    sample="TCGA-3C-AALI-01", value="9").put()
 
 def get_from_feature_distinct(name):

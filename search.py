@@ -21,6 +21,30 @@ import util
 from google.appengine.api import search
 from google.appengine.ext import deferred
 
+def put_sample_data():
+  features = [
+    "B:SAMP:I(Basal,Her2|PAM50_call):::::",
+    "B:SAMP:I(Basal,LumA|PAM50_call):::::",
+    "B:SAMP:I(Basal,LumB|PAM50_call):::::",
+    "B:SAMP:I(Basal,Normal|PAM50_call):::::",
+    "B:SAMP:I(Basal|PAM50_call):::::",
+    "B:SAMP:I(Her2,LumA|PAM50_call):::::",
+    "B:SAMP:I(Her2,LumB|PAM50_call):::::",
+    "B:SAMP:I(Her2,Normal|PAM50_call):::::",
+    "B:SAMP:I(Her2|PAM50_call):::::",
+    "B:SAMP:I(LumA,LumB|PAM50_call):::::",
+    "B:SAMP:I(LumA,Normal|PAM50_call):::::",
+    "B:SAMP:I(LumA|PAM50_call):::::",
+    "B:SAMP:I(LumB,Normal|PAM50_call):::::",
+    "B:SAMP:I(LumB|PAM50_call):::::",
+    "B:SAMP:I(Normal|PAM50_call):::::",
+    "C:SAMP:PAM50_call:::::"
+  ]
+  documents = []
+  for feature in features:
+    documents.append(feature_to_document(feature))
+  import_into_index(documents)
+
 def feature_to_document(feature):
   tokens = feature.split(":")
   if len(tokens) != 8:

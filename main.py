@@ -46,6 +46,7 @@ class MainHandler(webapp2.RequestHandler):
 
   def get(self):
     #model.put_sample_data()
+    #search.put_sample_data()
     self._render_page()
 
   def post(self):

@@ -32,6 +32,9 @@ limitations under the License.
   <!-- Latest compiled and minified JavaScript -->
   <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
 
+  <!-- For Google Charts support -->
+  <script type="text/javascript" src="https://www.google.com/jsapi"></script>
+
   <!-- Local Resources -->
   <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
   <link rel="stylesheet" href="/static/css/main.css">
@@ -90,8 +93,8 @@ limitations under the License.
     </div>
     <div class="panel-body">
       <p>Free text search over available features. Examples:
-       <b>nonsilent_somatic</b>, <b>Basal</b>, <b>methPlatform</b>, <b>cg26968812_Body_Island</b>,
-        <b>chr17</b>, <b>tp53</b>, etc.</p>
+       <b>PAM50_call</b>, <b>tp53</b>, <b>nonsilent_somatic</b>, <b>Basal</b>, <b>methPlatform</b>,
+        <b>chr17</b> etc.</p>
       <form id="searchFeatureForm" name="searchFeatureForm" action="{{ path }}" method="POST"
         class="form-horizontal" role="form">
         <div class="form-group">
@@ -151,9 +154,35 @@ limitations under the License.
           </div>
         </div>
         {% if lookupFeatureResults != None %}
+<script type="text/javascript">
+      {% set na_values = [] %}
+      google.load("visualization", "1", {packages:["corechart"]});
+      google.setOnLoadCallback(drawChart);
+      function drawChart() {
+        var data = google.visualization.arrayToDataTable([
+        {% for result in lookupFeatureResults %}
+          {% if result.value != "NA" %}
+            ['{{ result.sample }}', '{{ result.value }}'],
+          {% else %}
+            {% if na_values.append(1) %}{% endif %}
+          {% endif %}
+        {% endfor %}
+        ]);
+        var options = {
+          title: 'Histogram: ({{na_values|length}} sample(s) did not contain a value.)',
+          colors: ['#428bca'],
+          legend: { position: 'none' },
+          histogram: { bucketSize: 1 },
+        };
+
+        var chart = new google.visualization.Histogram(document.getElementById('chart_div'));
+        chart.draw(data, options);
+      }
+</script>
         <div class="form-group">
           <label for="lookupValue" class="col-sm-2 control-label">Results:</label>
           <div class="col-sm-10">
+            <div id="chart_div" style="width: 600px; height: 400px;"></div>
             <div class="table-responsive">
               <table class="table table-striped">
                 <thead>
