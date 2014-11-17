@@ -163,7 +163,11 @@ limitations under the License.
         ['Sample', 'Value'],
         {% for result in lookupFeatureResults %}
           {% if result.value != "NA" %}
-            ['{{ result.sample }}', '{{ result.value }}'],
+            {% if lookupFeature[0] == "C" %}
+              ['{{ result.value }}', 1],
+            {% else %}
+              ['{{ result.sample }}', {{ result.value }}],
+            {% endif %}
           {% else %}
             {% if na_values.append(1) %}{% endif %}
           {% endif %}
@@ -173,10 +177,19 @@ limitations under the License.
           title: 'Histogram: ({{na_values|length}} sample(s) did not contain a value.)',
           colors: ['#428bca'],
           legend: { position: 'none' },
-          histogram: { bucketSize: 1 },
+          {% if lookupFeature[0] == "B" %}
+            histogram: { bucketSize: 1 },
+          {% endif %}
+          {% if lookupFeature[0] == "C" %}
+            isStacked: true,
+          {% endif %}
         };
 
-        var chart = new google.visualization.Histogram(document.getElementById('chart_div'));
+        {% if lookupFeature[0] == "C" %}
+          var chart = new google.visualization.BarChart(document.getElementById('chart_div'));
+        {% else %}
+          var chart = new google.visualization.Histogram(document.getElementById('chart_div'));
+        {% endif %}
         chart.draw(data, options);
       }
 </script>
