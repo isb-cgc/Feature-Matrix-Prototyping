@@ -155,19 +155,17 @@ limitations under the License.
         </div>
         {% if lookupFeatureResults != None %}
 <script type="text/javascript">
-      {% set na_values = [] %}
       google.load("visualization", "1", {packages:["corechart"]});
-      google.setOnLoadCallback(drawChart);
-      function drawChart() {
+
+      {% if lookupFeature[0] == "N" %}
+      {% set na_values = [] %}
+      google.setOnLoadCallback(drawHistogram);
+      function drawHistogram() {
         var data = google.visualization.arrayToDataTable([
         ['Sample', 'Value'],
         {% for result in lookupFeatureResults %}
           {% if result.value != "NA" %}
-            {% if lookupFeature[0] == "C" %}
-              ['{{ result.value }}', 1],
-            {% else %}
-              ['{{ result.sample }}', {{ result.value }}],
-            {% endif %}
+            ['{{ result.sample }}', {{ result.value }}],
           {% else %}
             {% if na_values.append(1) %}{% endif %}
           {% endif %}
@@ -177,21 +175,33 @@ limitations under the License.
           title: 'Histogram: ({{na_values|length}} sample(s) did not contain a value.)',
           colors: ['#428bca'],
           legend: { position: 'none' },
-          {% if lookupFeature[0] == "B" %}
-            histogram: { bucketSize: 1 },
-          {% endif %}
-          {% if lookupFeature[0] == "C" %}
-            isStacked: true,
-          {% endif %}
         };
-
-        {% if lookupFeature[0] == "C" %}
-          var chart = new google.visualization.BarChart(document.getElementById('chart_div'));
-        {% else %}
-          var chart = new google.visualization.Histogram(document.getElementById('chart_div'));
-        {% endif %}
+        var chart = new google.visualization.Histogram(document.getElementById('chart_div'));
         chart.draw(data, options);
       }
+      {% else %}
+        var dict = {};
+        {% for result in lookupFeatureResults %}
+          key = '{{ result.value }}'
+          dict[key] = (dict[key] || 0) + 1;
+        {% endfor %}
+        google.setOnLoadCallback(drawColumnChart);
+        function drawColumnChart() {
+          var data = new google.visualization.DataTable();
+          data.addColumn('string','Value');
+          data.addColumn('number','Count');
+          for (var key in dict) {
+            data.addRows([[key, dict[key]]]);
+          }
+          var options = {
+            title: 'Graph',
+            colors: ['#428bca'],
+            legend: { position: 'none' },
+          };
+          var chart = new google.visualization.ColumnChart(document.getElementById('chart_div'));
+          chart.draw(data, options);
+        }
+      {% endif %}
 </script>
         <div class="form-group">
           <label for="lookupValue" class="col-sm-2 control-label">Results:</label>
